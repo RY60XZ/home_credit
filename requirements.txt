@@ -1,0 +1,12 @@
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+matplotlib>=3.8
+seaborn>=0.13
+lightgbm>=4.0
+xgboost>=2.0
+catboost>=1.2
+optuna>=4.0
+shap>=0.45
+jupyter>=1.0
+ipykernel>=6.0
