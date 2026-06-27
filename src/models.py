@@ -28,6 +28,6 @@ def make_random_forest():
 
 def evaluate_roc_auc(model, X_train, X_valid, y_train, y_valid):
     model.fit(X_train, y_train)
-    valid_pred = model.predict(X_valid)
+    valid_pred = model.predict_proba(X_valid)[:, 1]
     auc = roc_auc_score(y_valid, valid_pred)
     return auc
