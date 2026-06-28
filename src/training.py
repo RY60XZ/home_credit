@@ -4,8 +4,9 @@ from src.models import make_lightGBM
 from src.data_loading import load_data, TARGET_COL, ID_COL
 import numpy as np
 import pandas as pd
+import warnings
 
-def run_lgbm_cv(X, y, n_split=5, random_state=42):
+def run_lgbm_cv(X, y, n_split=5, random_state=42, lgbm_params=None):
     cv = StratifiedKFold(n_splits=n_split, shuffle=True, random_state=random_state)
     oof_preds = np.zeros(len(y))
     fold_aucs = []
@@ -13,9 +14,11 @@ def run_lgbm_cv(X, y, n_split=5, random_state=42):
     for fold, (train_index, valid_index) in enumerate(cv.split(X, y)):
         X_train, X_valid = X.iloc[train_index], X.iloc[valid_index]
         y_train, y_valid = y.iloc[train_index], y.iloc[valid_index]
-        lightgbm_model = make_lightGBM()
+        lightgbm_model = make_lightGBM(lgbm_params=lgbm_params)
         lightgbm_model.fit(X_train, y_train)
-        valid_pred = lightgbm_model.predict_proba(X_valid)[:, 1]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            valid_pred = lightgbm_model.predict_proba(X_valid)[:, 1]
         oof_preds[valid_index] = valid_pred
         auc_score = roc_auc_score(y_valid, valid_pred)
         fold_aucs.append(auc_score)

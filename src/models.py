@@ -3,6 +3,7 @@ from src.preprocessing import make_model_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score
+import warnings
 
 def make_logistic_regression():
     return make_model_pipeline(
@@ -28,22 +29,30 @@ def make_random_forest():
         scale_numeric = False,
     )
 
-def make_lightGBM():
+def make_lightGBM(lgbm_params=None):
+    params = {
+        "n_estimators": 300,
+        "min_child_samples": 20,
+        "max_depth": None,
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1,
+        "verbose": -1,
+    }
+    if lgbm_params is not None:
+        params.update(lgbm_params)
+
     return make_model_pipeline(
         LGBMClassifier(
-            n_estimators = 300,
-            min_child_samples = 20,
-            max_depth = None,
-            class_weight='balanced',
-            random_state=42,
-            n_jobs = -1,
-            verbose = -1,
+            **params
         ),
         scale_numeric = False,
     )
 
 def evaluate_roc_auc(model, X_train, X_valid, y_train, y_valid):
     model.fit(X_train, y_train)
-    valid_pred = model.predict_proba(X_valid)[:, 1]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        valid_pred = model.predict_proba(X_valid)[:, 1]
     auc = roc_auc_score(y_valid, valid_pred)
     return auc

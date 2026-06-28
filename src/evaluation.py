@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src.data_loading import load_data, TARGET_COL, ID_COL
 from src.training import run_lgbm_cv
+from sklearn.metrics import roc_auc_score
 
 def get_feature_importance(models, importance_type="gain"):
     feature_importance = pd.DataFrame()
@@ -32,6 +33,12 @@ def plot_feature_importance(feature_importance, top_n=20):
     axis.set_ylabel("Feature")
     fig.tight_layout()
     return fig, axis
+
+def summarize_cv_results(results, y):
+    print(f"mean_auc: {results["mean_auc"]}")
+    print(f"std_auc: {results["std_auc"]}")
+    oof_auc = roc_auc_score(y, results["oof_preds"])
+    print(f"oof_auc: {oof_auc}")
 
 def get_error_cases(X, y, oof_preds, threshold=0.5):
     errors = X.copy()
