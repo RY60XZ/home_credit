@@ -44,6 +44,12 @@ def load_data():
     application_test = data_cleaning(application_test)
     return application_train, application_test
 
+def load_data_with_secondary_tables():
+    application_train = pd.read_csv(PROCESSED_DATA_PATH / "application_train_with_secondary_tables.csv")
+    application_test = pd.read_csv(PROCESSED_DATA_PATH / "application_test_with_secondary_tables.csv")
+    application_train = application_train.drop(columns=["Unnamed: 0"], errors="ignore")
+    application_test = application_test.drop(columns=["Unnamed: 0"], errors="ignore")
+    return application_train, application_test
 
 def train_valid_split(application_train):
     X = application_train.drop(columns=[TARGET_COL, ID_COL])
