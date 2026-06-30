@@ -28,9 +28,9 @@ def _sample_data(X, y, sample_size=None, random_state=42):
 
 def _trial_params(trial):
     return {
-        "num_leaves": trial.suggest_int("num_leaves", 16, 96, log=True),
-        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.08, log=True),
-        "min_child_samples": trial.suggest_int("min_child_samples", 50, 300),
+        "num_leaves": trial.suggest_int("num_leaves", 24, 72),
+        "learning_rate": trial.suggest_float("learning_rate", 0.008, 0.035, log=True),
+        "min_child_samples": trial.suggest_int("min_child_samples", 80, 260),
         "subsample": trial.suggest_float("subsample", 0.6, 1.0),
         "subsample_freq": 1,
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
@@ -74,11 +74,11 @@ def load_lgbm_params(filename="best_lgbm_params.json"):
 def tune_lgbm_fast(
     X,
     y,
-    n_trials=10,
-    top_n=5,
-    sample_size=75000,
+    n_trials=80,
+    top_n=8,
+    sample_size=180000,
     valid_size=0.2,
-    early_stopping_rounds=30,
+    early_stopping_rounds=80,
     random_state=42,
     quiet=True,
 ):
