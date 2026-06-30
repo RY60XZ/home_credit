@@ -1,9 +1,7 @@
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold
 from src.models import make_lightGBM
-from src.data_loading import load_data, TARGET_COL, ID_COL
 import numpy as np
-import pandas as pd
 import warnings
 
 def run_lgbm_cv(X, y, n_split=5, random_state=42, lgbm_params=None):

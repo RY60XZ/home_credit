@@ -7,7 +7,7 @@ from optuna.trial import TrialState
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
-from src.preprocessing import make_preprocessor
+from src.preprocessing import LightGBMFeaturePreprocessor
 from src.training import run_lgbm_cv
 from src.data_loading import PROCESSED_DATA_PATH
 
@@ -29,7 +29,7 @@ def _sample_data(X, y, sample_size=None, random_state=42):
 def _trial_params(trial):
     return {
         "num_leaves": trial.suggest_int("num_leaves", 16, 96, log=True),
-        "learning_rate": trial.suggest_float("learning_rate", 0.02, 0.12, log=True),
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.08, log=True),
         "min_child_samples": trial.suggest_int("min_child_samples", 50, 300),
         "subsample": trial.suggest_float("subsample", 0.6, 1.0),
         "subsample_freq": 1,
@@ -37,6 +37,7 @@ def _trial_params(trial):
         "reg_alpha": trial.suggest_float("reg_alpha", 1e-8, 10.0, log=True),
         "reg_lambda": trial.suggest_float("reg_lambda", 1e-8, 10.0, log=True),
         "max_depth": trial.suggest_categorical("max_depth", [-1, 4, 6, 8, 10]),
+        "class_weight": trial.suggest_categorical("class_weight", [None, "balanced"]),
     }
 
 
@@ -98,14 +99,13 @@ def tune_lgbm_fast(
         stratify=y_sample,
     )
 
-    preprocessor = make_preprocessor(scale_numeric=False)
+    preprocessor = LightGBMFeaturePreprocessor()
     X_train_processed = preprocessor.fit_transform(X_train)
     X_valid_processed = preprocessor.transform(X_valid)
 
     fixed_params = {
         "objective": "binary",
-        "n_estimators": 800,
-        "class_weight": "balanced",
+        "n_estimators": 2000,
         "random_state": random_state,
         "n_jobs": -1,
         "verbose": -1,

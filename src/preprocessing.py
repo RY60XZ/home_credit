@@ -1,8 +1,11 @@
 import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from src.feature_engineering import add_engineered_features
 
 try:
     from src.data_loading import load_data, train_valid_split
@@ -110,6 +113,45 @@ def make_model_pipeline(estimator, scale_numeric=False, add_missing_indicators=T
                     categorical_encoding=categorical_encoding,
                 ),
             ),
+            ("model", estimator),
+        ]
+    )
+
+
+class LightGBMFeaturePreprocessor(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        X_prepared = add_engineered_features(X)
+        self.feature_names_out_ = np.array(X_prepared.columns, dtype=object)
+        self.categorical_columns_ = X_prepared.select_dtypes(
+            include=["object", "string", "category"]
+        ).columns.tolist()
+        self.categories_ = {}
+        for col in self.categorical_columns_:
+            self.categories_[col] = pd.Series(X_prepared[col]).astype("category").cat.categories
+        return self
+
+    def transform(self, X):
+        X_prepared = add_engineered_features(X)
+        for col in self.feature_names_out_:
+            if col not in X_prepared.columns:
+                X_prepared[col] = np.nan
+        X_prepared = X_prepared.loc[:, self.feature_names_out_].copy()
+
+        for col in self.categorical_columns_:
+            X_prepared[col] = pd.Categorical(
+                X_prepared[col],
+                categories=self.categories_[col],
+            )
+        return X_prepared
+
+    def get_feature_names_out(self, input_features=None):
+        return self.feature_names_out_
+
+
+def make_lightgbm_pipeline(estimator):
+    return Pipeline(
+        [
+            ("preprocess", LightGBMFeaturePreprocessor()),
             ("model", estimator),
         ]
     )
